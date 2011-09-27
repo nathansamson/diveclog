@@ -11,6 +11,10 @@ typedef struct {
 	GtkWidget *bar;
 } progressbar_t;
 
+/*extern gboolean on_delete(GtkWidget* w, gpointer data);
+extern void on_destroy(GtkWidget* w, gpointer data);
+extern void quit(GtkWidget *w, gpointer data);*/
+
 extern const char *divelist_font;
 extern void set_divelist_font(const char *);
 

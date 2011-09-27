@@ -84,7 +84,7 @@ void report_error(GError* error)
 	}
 }
 
-static void file_open(GtkWidget *w, gpointer data)
+G_MODULE_EXPORT void file_open(GtkWidget *w, gpointer data)
 {
 	GtkWidget *dialog;
 	GtkFileFilter *filter;
@@ -130,7 +130,7 @@ static void file_open(GtkWidget *w, gpointer data)
 	gtk_widget_destroy(dialog);
 }
 
-static void file_save(GtkWidget *w, gpointer data)
+G_MODULE_EXPORT void file_save(GtkWidget *w, gpointer data)
 {
 	GtkWidget *dialog;
 	dialog = gtk_file_chooser_dialog_new("Save File",
@@ -174,7 +174,7 @@ static void ask_save_changes()
 	gtk_widget_destroy(dialog);
 }
 
-static gboolean on_delete(GtkWidget* w, gpointer data)
+G_MODULE_EXPORT gboolean on_delete(GtkWidget* w, gpointer data)
 {
 	/* Make sure to flush any modified dive data */
 	update_dive(NULL);
@@ -185,12 +185,12 @@ static gboolean on_delete(GtkWidget* w, gpointer data)
 	return FALSE; /* go ahead, kill the program, we're good now */
 }
 
-static void on_destroy(GtkWidget* w, gpointer data)
+G_MODULE_EXPORT void on_destroy(GtkObject* o, gpointer data)
 {
 	gtk_main_quit();
 }
 
-static void quit(GtkWidget *w, gpointer data)
+G_MODULE_EXPORT void quit(GtkMenuItem *w, gpointer data)
 {
 	/* Make sure to flush any modified dive data */
 	update_dive(NULL);
@@ -252,7 +252,7 @@ UNITCALLBACK(set_cuft, volume, CUFT)
 UNITCALLBACK(set_celsius, temperature, CELSIUS)
 UNITCALLBACK(set_fahrenheit, temperature, FAHRENHEIT)
 
-static void preferences_dialog(GtkWidget *w, gpointer data)
+G_MODULE_EXPORT void preferences_dialog(GtkWidget *w, gpointer data)
 {
 	int result;
 	GtkWidget *dialog, *font, *frame, *box, *vbox;
@@ -317,7 +317,7 @@ static void preferences_dialog(GtkWidget *w, gpointer data)
 	gtk_widget_destroy(dialog);
 }
 
-static void renumber_dialog(GtkWidget *w, gpointer data)
+G_MODULE_EXPORT void renumber_dialog(GtkWidget *w, gpointer data)
 {
 	int result;
 	GtkWidget *dialog, *frame, *button, *vbox;
@@ -347,7 +347,7 @@ static void renumber_dialog(GtkWidget *w, gpointer data)
 	gtk_widget_destroy(dialog);
 }
 
-static void about_dialog(GtkWidget *w, gpointer data)
+G_MODULE_EXPORT void about_dialog(GtkWidget *w, gpointer data)
 {
 	const char *logo_property = NULL;
 	GdkPixbuf *logo = NULL;
@@ -454,6 +454,8 @@ void init_ui(int argc, char **argv)
 	builder = gtk_builder_new();
 	// TODO: load from installed prefix
 	gtk_builder_add_from_file(builder, "share/subsurface.ui", NULL);
+	
+	gtk_builder_connect_signals(builder, NULL);
 	
 	main_window = GTK_WIDGET(gtk_builder_get_object(builder, "main_window"));
 	gtk_widget_show_all(main_window);

@@ -18,7 +18,7 @@ LIBDIVECOMPUTERARCHIVE = $(LIBDIVECOMPUTERDIR)/lib/libdivecomputer.a
 LIBUSB = $(shell pkg-config --libs libusb-1.0 2> /dev/null)
 
 LIBXML2 = $(shell xml2-config --libs)
-LIBGTK = $(shell pkg-config --libs gtk+-2.0 glib-2.0 gconf-2.0)
+LIBGTK = $(shell pkg-config --libs gtk+-2.0 glib-2.0 gconf-2.0 gmodule-2.0)
 LIBDIVECOMPUTER = $(LIBDIVECOMPUTERARCHIVE) $(LIBUSB)
 
 LIBS = $(LIBXML2) $(LIBGTK) $(LIBDIVECOMPUTER) -lpthread

@@ -431,15 +431,7 @@ static void switch_page(GtkNotebook *notebook, gint arg1, gpointer user_data)
 
 void init_ui(int argc, char **argv)
 {
-	GtkWidget *win;
-	GtkWidget *paned;
-	GtkWidget *info_box;
-	GtkWidget *notebook;
-	GtkWidget *dive_info;
-	GtkWidget *dive_list;
-	GtkWidget *equipment;
-	GtkWidget *menubar;
-	GtkWidget *vbox;
+	GtkBuilder* builder;
 
 	gtk_init(&argc, &argv);
 
@@ -459,51 +451,12 @@ void init_ui(int argc, char **argv)
 	if (!divelist_font)
 		divelist_font = DIVELIST_DEFAULT_FONT;
 
-	error_info_bar = NULL;
-	win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-	gtk_window_set_icon_from_file(GTK_WINDOW(win), "icon.svg", NULL);
-	g_signal_connect(G_OBJECT(win), "delete-event", G_CALLBACK (on_delete), NULL);
-	g_signal_connect(G_OBJECT(win), "destroy", G_CALLBACK(on_destroy), NULL);
-	main_window = win;
-
-	vbox = gtk_vbox_new(FALSE, 0);
-	gtk_container_add(GTK_CONTAINER(win), vbox);
-	main_vbox = vbox;
-
-	menubar = get_menubar_menu(win);
-	gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
-
-	/* HPane for left the dive list, and right the dive info */
-	paned = gtk_vpaned_new();
-	gtk_box_pack_end(GTK_BOX(vbox), paned, TRUE, TRUE, 0);
-
-	/* Create the actual divelist */
-	dive_list = dive_list_create();
-	gtk_paned_add2(GTK_PANED(paned), dive_list);
-
-	/* VBox for dive info, and tabs */
-	info_box = gtk_vbox_new(FALSE, 6);
-	gtk_paned_add1(GTK_PANED(paned), info_box);
-
-	/* Notebook for dive info vs profile vs .. */
-	notebook = gtk_notebook_new();
-	g_signal_connect(notebook, "switch-page", G_CALLBACK(switch_page), NULL);
-	gtk_box_pack_start(GTK_BOX(info_box), notebook, TRUE, TRUE, 6);
-
-	/* Frame for dive profile */
-	dive_profile = dive_profile_widget();
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), dive_profile, gtk_label_new("Dive Profile"));
-
-	/* Frame for extended dive info */
-	dive_info = extended_dive_info_widget();
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), dive_info, gtk_label_new("Dive Notes"));
-
-	/* Frame for dive equipment */
-	equipment = equipment_widget();
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), equipment, gtk_label_new("Equipment"));
-
-	gtk_widget_set_app_paintable(win, TRUE);
-	gtk_widget_show_all(win);
+	builder = gtk_builder_new();
+	// TODO: load from installed prefix
+	gtk_builder_add_from_file(builder, "share/subsurface.ui", NULL);
+	
+	main_window = GTK_WIDGET(gtk_builder_get_object(builder, "main_window"));
+	gtk_widget_show_all(main_window);
 
 	return;
 }

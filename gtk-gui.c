@@ -369,61 +369,6 @@ G_MODULE_EXPORT void about_dialog(GtkWidget *w, gpointer data)
 		NULL);
 }
 
-static GtkActionEntry menu_items[] = {
-	{ "FileMenuAction", GTK_STOCK_FILE, "File", NULL, NULL, NULL},
-	{ "LogMenuAction",  GTK_STOCK_FILE, "Log", NULL, NULL, NULL},
-	{ "HelpMenuAction", GTK_STOCK_HELP, "Help", NULL, NULL, NULL},
-	{ "OpenFile",       GTK_STOCK_OPEN, NULL,   "<control>O", NULL, G_CALLBACK(file_open) },
-	{ "SaveFile",       GTK_STOCK_SAVE, NULL,   "<control>S", NULL, G_CALLBACK(file_save) },
-	{ "Print",          GTK_STOCK_PRINT, NULL,  "<control>P", NULL, G_CALLBACK(do_print) },
-	{ "Import",         NULL, "Import", NULL, NULL, G_CALLBACK(import_dialog) },
-	{ "Preferences",    NULL, "Preferences", NULL, NULL, G_CALLBACK(preferences_dialog) },
-	{ "Renumber",       NULL, "Renumber", NULL, NULL, G_CALLBACK(renumber_dialog) },
-	{ "Quit",           GTK_STOCK_QUIT, NULL,   "<control>Q", NULL, G_CALLBACK(quit) },
-	{ "About",           GTK_STOCK_ABOUT, NULL,  NULL, NULL, G_CALLBACK(about_dialog) },
-};
-static gint nmenu_items = sizeof (menu_items) / sizeof (menu_items[0]);
-
-static const gchar* ui_string = " \
-	<ui> \
-		<menubar name=\"MainMenu\"> \
-			<menu name=\"FileMenu\" action=\"FileMenuAction\"> \
-				<menuitem name=\"Open\" action=\"OpenFile\" /> \
-				<menuitem name=\"Save\" action=\"SaveFile\" /> \
-				<menuitem name=\"Print\" action=\"Print\" /> \
-				<separator name=\"Separator1\"/> \
-				<menuitem name=\"Import\" action=\"Import\" /> \
-				<separator name=\"Separator2\"/> \
-				<menuitem name=\"Preferences\" action=\"Preferences\" /> \
-				<separator name=\"Separator3\"/> \
-				<menuitem name=\"Quit\" action=\"Quit\" /> \
-			</menu> \
-			<menu name=\"LogMenu\" action=\"LogMenuAction\"> \
-				<menuitem name=\"Renumber\" action=\"Renumber\" /> \
-			</menu> \
-			<menu name=\"Help\" action=\"HelpMenuAction\"> \
-				<menuitem name=\"About\" action=\"About\" /> \
-			</menu> \
-		</menubar> \
-	</ui> \
-";
-
-static GtkWidget *get_menubar_menu(GtkWidget *window)
-{
-	GtkActionGroup *action_group = gtk_action_group_new("Menu");
-	gtk_action_group_add_actions(action_group, menu_items, nmenu_items, 0);
-
-	GtkUIManager *ui_manager = gtk_ui_manager_new();
-	gtk_ui_manager_insert_action_group(ui_manager, action_group, 0);
-	GError* error = 0;
-	gtk_ui_manager_add_ui_from_string(GTK_UI_MANAGER(ui_manager), ui_string, -1, &error);
-
-	gtk_window_add_accel_group(GTK_WINDOW(window), gtk_ui_manager_get_accel_group(ui_manager));
-	GtkWidget* menu = gtk_ui_manager_get_widget(ui_manager, "/MainMenu");
-
-	return menu;
-}
-
 static void switch_page(GtkNotebook *notebook, gint arg1, gpointer user_data)
 {
 	repaint_dive();
@@ -431,7 +376,8 @@ static void switch_page(GtkNotebook *notebook, gint arg1, gpointer user_data)
 
 void init_ui(int argc, char **argv)
 {
-	GtkBuilder* builder;
+	GtkBuilder *builder;
+	GtkWidget *graph_placeholder_alignment;
 
 	gtk_init(&argc, &argv);
 
@@ -458,6 +404,14 @@ void init_ui(int argc, char **argv)
 	gtk_builder_connect_signals(builder, NULL);
 	
 	main_window = GTK_WIDGET(gtk_builder_get_object(builder, "main_window"));
+	main_vbox = GTK_WIDGET(gtk_builder_get_object(builder, "main_vbox"));
+	graph_placeholder_alignment = GTK_WIDGET(gtk_builder_get_object(builder, "graph_placeholder_alignment"));
+	dive_profile = dive_profile_widget();
+	gtk_container_add(GTK_CONTAINER(graph_placeholder_alignment), dive_profile);
+	dive_list_init(builder);
+	dive_info_init(builder);
+	
+	
 	gtk_widget_show_all(main_window);
 
 	return;

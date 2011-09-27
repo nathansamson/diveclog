@@ -423,41 +423,6 @@ typedef void (*data_func_t)(GtkTreeViewColumn *col,
 			    GtkTreeIter *iter,
 			    gpointer data);
 
-static GtkTreeViewColumn *divelist_column(struct DiveList *dl, int index, const char *title,
-					data_func_t data_func, PangoAlignment align)
-{
-	GtkCellRenderer *renderer;
-	GtkTreeViewColumn *col;
-	double xalign = 0.0; /* left as default */
-
-	renderer = gtk_cell_renderer_text_new();
-	col = gtk_tree_view_column_new();
-
-	gtk_tree_view_column_set_title(col, title);
-	gtk_tree_view_column_set_sort_column_id(col, index);
-	gtk_tree_view_column_set_resizable(col, TRUE);
-	gtk_tree_view_column_pack_start(col, renderer, TRUE);
-	if (data_func)
-		gtk_tree_view_column_set_cell_data_func(col, renderer, data_func, NULL, NULL);
-	else
-		gtk_tree_view_column_add_attribute(col, renderer, "text", index);
-	gtk_object_set(GTK_OBJECT(renderer), "alignment", align, NULL);
-	switch (align) {
-	case PANGO_ALIGN_LEFT:
-		xalign = 0.0;
-		break;
-	case PANGO_ALIGN_CENTER:
-		xalign = 0.5;
-		break;
-	case PANGO_ALIGN_RIGHT:
-		xalign = 1.0;
-		break;
-	}
-	gtk_cell_renderer_set_alignment(GTK_CELL_RENDERER(renderer), xalign, 0.5);
-	gtk_tree_view_append_column(GTK_TREE_VIEW(dl->tree_view), col);
-	return col;
-}
-
 /*
  * This is some crazy crap. The only way to get default focus seems
  * to be to grab focus as the widget is being shown the first time.
@@ -467,56 +432,38 @@ static void realize_cb(GtkWidget *tree_view, gpointer userdata)
 	gtk_widget_grab_focus(tree_view);
 }
 
-GtkWidget *dive_list_create(void)
+void dive_list_init(GtkBuilder *builder)
 {
 	GtkTreeSelection  *selection;
 
-	dive_list.model = gtk_list_store_new(DIVELIST_COLUMNS,
-				G_TYPE_INT,			/* index */
-				G_TYPE_INT,			/* Date */
-				G_TYPE_INT, 			/* Depth */
-				G_TYPE_INT,			/* Duration */
-				G_TYPE_INT,			/* Temperature */
-				G_TYPE_STRING,			/* Cylinder */
-				G_TYPE_INT,			/* Nitrox */
-				G_TYPE_INT,			/* SAC */
-				G_TYPE_STRING			/* Location */
-				);
-	dive_list.tree_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(dive_list.model));
+	dive_list.model = GTK_LIST_STORE(gtk_builder_get_object(builder, "dive_store"));
+	dive_list.tree_view = GTK_WIDGET(gtk_builder_get_object(builder, "dive_list_tree_view"));
 	set_divelist_font(divelist_font);
 
 	selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(dive_list.tree_view));
 
 	gtk_tree_selection_set_mode(GTK_TREE_SELECTION(selection), GTK_SELECTION_BROWSE);
-	gtk_widget_set_size_request(dive_list.tree_view, 200, 200);
 
-	dive_list.date = divelist_column(&dive_list, DIVE_DATE, "Date", date_data_func, PANGO_ALIGN_LEFT);
-	dive_list.depth = divelist_column(&dive_list, DIVE_DEPTH, "ft", depth_data_func, PANGO_ALIGN_RIGHT);
-	dive_list.duration = divelist_column(&dive_list, DIVE_DURATION, "min", duration_data_func, PANGO_ALIGN_RIGHT);
-	dive_list.temperature = divelist_column(&dive_list, DIVE_TEMPERATURE, UTF8_DEGREE "F", temperature_data_func, PANGO_ALIGN_RIGHT);
-	dive_list.cylinder = divelist_column(&dive_list, DIVE_CYLINDER, "Cyl", NULL, PANGO_ALIGN_CENTER);
-	dive_list.nitrox = divelist_column(&dive_list, DIVE_NITROX, "O" UTF8_SUBSCRIPT_2 "%", nitrox_data_func, PANGO_ALIGN_CENTER);
-	dive_list.sac = divelist_column(&dive_list, DIVE_SAC, "SAC", sac_data_func, PANGO_ALIGN_CENTER);
-	dive_list.location = divelist_column(&dive_list, DIVE_LOCATION, "Location", NULL, PANGO_ALIGN_LEFT);
+	dive_list.date = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_date_column"));
+	//date_data_func
+	dive_list.depth = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_date_column"));
+	//depth_data_func
+	dive_list.duration = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_duration_column"));
+	//duration_data_func
+	dive_list.temperature = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_temperature_column"));
+	//temperature_data_func
+	dive_list.cylinder = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_cylinder_column"));
+	dive_list.nitrox = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_nitrox_column"));
+	//nitrox_data_func
+	dive_list.sac = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_sac_column"));
+	dive_list.location = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_location_column"));
 
 	fill_dive_list();
-
-	g_object_set(G_OBJECT(dive_list.tree_view), "headers-visible", TRUE,
-					  "search-column", DIVE_LOCATION,
-					  "rules-hint", TRUE,
-					  NULL);
 
 	g_signal_connect_after(dive_list.tree_view, "realize", G_CALLBACK(realize_cb), NULL);
 	g_signal_connect(selection, "changed", G_CALLBACK(selection_cb), dive_list.model);
 
-	dive_list.container_widget = gtk_scrolled_window_new(NULL, NULL);
-	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(dive_list.container_widget),
-			       GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	gtk_container_add(GTK_CONTAINER(dive_list.container_widget), dive_list.tree_view);
-
 	dive_list.changed = 0;
-
-	return dive_list.container_widget;
 }
 
 void mark_divelist_changed(int changed)

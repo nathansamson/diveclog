@@ -123,59 +123,13 @@ void show_dive_info(struct dive *dive)
 	gtk_text_buffer_set_text(notes, dive && dive->notes ? dive->notes : "", -1);
 }
 
-static GtkEntry *text_entry(GtkWidget *box, const char *label)
+void dive_info_init(GtkBuilder *builder)
 {
-	GtkWidget *entry;
-	GtkWidget *frame = gtk_frame_new(label);
+	GtkTextView *notes_view;
 
-	gtk_box_pack_start(GTK_BOX(box), frame, FALSE, TRUE, 0);
-
-	entry = gtk_entry_new();
-	gtk_container_add(GTK_CONTAINER(frame), entry);
-
-	return GTK_ENTRY(entry);
-}
-
-static GtkTextBuffer *text_view(GtkWidget *box, const char *label)
-{
-	GtkWidget *view, *vbox;
-	GtkTextBuffer *buffer;
-	GtkWidget *frame = gtk_frame_new(label);
-
-	gtk_box_pack_start(GTK_BOX(box), frame, TRUE, TRUE, 0);
-	box = gtk_hbox_new(FALSE, 3);
-	gtk_container_add(GTK_CONTAINER(frame), box);
-	vbox = gtk_vbox_new(FALSE, 3);
-	gtk_container_add(GTK_CONTAINER(box), vbox);
-
-	GtkWidget* scrolled_window = gtk_scrolled_window_new(0, 0);
-	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-	gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(scrolled_window), GTK_SHADOW_IN);
-
-	view = gtk_text_view_new();
-	gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(view), GTK_WRAP_WORD);
-	gtk_container_add(GTK_CONTAINER(scrolled_window), view);
-
-	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (view));
-
-	gtk_box_pack_start(GTK_BOX(vbox), scrolled_window, TRUE, TRUE, 0);
-	return buffer;
-}
-
-GtkWidget *extended_dive_info_widget(void)
-{
-	GtkWidget *vbox, *hbox;
-	vbox = gtk_vbox_new(FALSE, 6);
-
-	gtk_container_set_border_width(GTK_CONTAINER(vbox), 6);
-	location = text_entry(vbox, "Location");
-
-	hbox = gtk_hbox_new(FALSE, 3);
-	gtk_box_pack_start(GTK_BOX(vbox), hbox, FALSE, TRUE, 0);
-
-	divemaster = text_entry(hbox, "Divemaster");
-	buddy = text_entry(hbox, "Buddy");
-
-	notes = text_view(vbox, "Notes");
-	return vbox;
+	divemaster = GTK_ENTRY(gtk_builder_get_object(builder, "dive_info_divemaster"));
+	buddy = GTK_ENTRY(gtk_builder_get_object(builder, "dive_info_buddy"));
+	location = GTK_ENTRY(gtk_builder_get_object(builder, "dive_info_location"));
+	notes_view = GTK_TEXT_VIEW(gtk_builder_get_object(builder, "dive_info_notes"));
+	notes = gtk_text_view_get_buffer(notes_view);
 }

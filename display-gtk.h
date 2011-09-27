@@ -24,10 +24,10 @@ extern int process_ui_events(void);
 extern void update_progressbar(progressbar_t *progress, double value);
 
 extern GtkWidget *dive_profile_widget(void);
-extern GtkWidget *dive_info_frame(void);
 extern GtkWidget *extended_dive_info_widget(void);
 extern GtkWidget *equipment_widget(void);
 
-extern GtkWidget *dive_list_create(void);
+extern void dive_info_init(GtkBuilder *builder);
+extern void dive_list_init(GtkBuilder *builder);
 
 #endif

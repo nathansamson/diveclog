@@ -432,6 +432,27 @@ static void realize_cb(GtkWidget *tree_view, gpointer userdata)
 	gtk_widget_grab_focus(tree_view);
 }
 
+static GtkTreeViewColumn* dive_list_column_init(GtkBuilder *builder,
+                                                const char* name, data_func_t func)
+{
+	char column_name[128] = "dive_list_";
+	char renderer_name[128] = "dive_list_";
+	
+	strcat(column_name, name);
+	strcat(column_name, "_column");
+	GtkTreeViewColumn *column = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder,
+	                                                 column_name));
+	if (func != NULL)
+	{
+		strcat(renderer_name, name);
+		strcat(renderer_name, "_renderer");
+		GtkCellRenderer *renderer = GTK_CELL_RENDERER(gtk_builder_get_object(builder,
+	                                                 renderer_name));
+		gtk_tree_view_column_set_cell_data_func(column, renderer, func, NULL, NULL);
+	}
+	return column;
+}
+
 void dive_list_init(GtkBuilder *builder)
 {
 	GtkTreeSelection  *selection;
@@ -444,19 +465,14 @@ void dive_list_init(GtkBuilder *builder)
 
 	gtk_tree_selection_set_mode(GTK_TREE_SELECTION(selection), GTK_SELECTION_BROWSE);
 
-	dive_list.date = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_date_column"));
-	//date_data_func
-	dive_list.depth = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_date_column"));
-	//depth_data_func
-	dive_list.duration = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_duration_column"));
-	//duration_data_func
-	dive_list.temperature = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_temperature_column"));
-	//temperature_data_func
-	dive_list.cylinder = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_cylinder_column"));
-	dive_list.nitrox = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_nitrox_column"));
-	//nitrox_data_func
-	dive_list.sac = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_sac_column"));
-	dive_list.location = GTK_TREE_VIEW_COLUMN(gtk_builder_get_object(builder, "dive_list_location_column"));
+	dive_list.date = dive_list_column_init(builder, "date", date_data_func);
+	dive_list.depth = dive_list_column_init(builder, "depth", depth_data_func);
+	dive_list.duration = dive_list_column_init(builder, "duration", duration_data_func);
+	dive_list.temperature = dive_list_column_init(builder, "temperature", temperature_data_func);
+	dive_list.cylinder = dive_list_column_init(builder, "cylinder", NULL);
+	dive_list.nitrox = dive_list_column_init(builder, "nitrox", nitrox_data_func);
+	dive_list.sac = dive_list_column_init(builder, "sac", sac_data_func);
+	dive_list.location = dive_list_column_init(builder, "location", NULL);
 
 	fill_dive_list();
 
